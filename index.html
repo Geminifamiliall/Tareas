@@ -688,6 +688,7 @@ function toast(msg, type = '') {
 function toggleAI() { document.getElementById('ai-panel').classList.toggle('open'); }
 
 async function sendAI() {
+  const GEMINI_KEY = 'AIzaSyCBqPM6aN_Rv2-nP0MRT0f7gp-L4oInQcg';
   const input = document.getElementById('ai-input');
   const text = document.getElementById('ai-text');
   const query = input.value.trim();
@@ -695,31 +696,36 @@ async function sendAI() {
 
   const pendientes = tasks.filter(t => !t.done);
   const resumen = pendientes.map(t =>
-    `- "${t.titulo}" | ${t.ambito} | prioridad: ${t.prioridad} | pide: ${t.quien || '—'} | fecha: ${t.fecha || 'sin fecha'}`
-  ).join('\n') || 'No hay tareas pendientes.';
+    
+  ).join('
+') || 'No hay tareas pendientes.';
 
-  text.innerHTML = '<span class="spinner"></span><span style="color:var(--muted);font-size:13px">analizando…</span>';
+  text.innerHTML = '<span class="spinner"></span><span style="color:var(--muted);font-size:13px">analizando...</span>';
   input.value = '';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: `Eres un asistente de productividad personal conciso. El usuario tiene estas tareas pendientes:\n${resumen}\nResponde de forma directa y útil, en español, en 2-4 líneas máximo. Sin listas largas.`,
-        messages: [{ role: 'user', content: query }]
-      })
-    });
+    const prompt = 'Eres un asistente de productividad personal conciso. El usuario tiene estas tareas pendientes:
+' + resumen + '
+
+Pregunta: ' + query + '
+
+Responde en espanol, de forma directa, en 2-4 lineas maximo.';
+    const resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 300, temperature: 0.7 }
+        })
+      }
+    );
     const data = await resp.json();
-    text.textContent = data.content?.[0]?.text || 'No pude procesar la respuesta.';
+    const reply = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+    text.textContent = reply || 'No pude procesar la respuesta.';
   } catch(e) {
-    text.textContent = 'Sin conexión a internet. La IA requiere conexión, pero tus tareas se gestionan igual.';
+    text.textContent = 'Sin conexion a internet. La IA requiere conexion, pero tus tareas se gestionan igual.';
   }
 }
 document.addEventListener('DOMContentLoaded', () => {
