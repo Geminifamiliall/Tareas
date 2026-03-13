@@ -703,12 +703,10 @@ async function sendAI() {
   input.value = '';
 
   try {
-    const prompt = 'Eres un asistente de productividad personal conciso. El usuario tiene estas tareas pendientes:
-' + resumen + '
-
-Pregunta: ' + query + '
-
-Responde en espanol, de forma directa, en 2-4 lineas maximo.';
+    const prompt = 'Eres un asistente de productividad personal conciso. ' +
+      'El usuario tiene estas tareas pendientes: ' + resumen + ' ' +
+      'Pregunta: ' + query + ' ' +
+      'Responde en espanol, de forma directa, en 2-4 lineas maximo.';
     const resp = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY,
       {
