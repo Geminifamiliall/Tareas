@@ -696,9 +696,8 @@ async function sendAI() {
 
   const pendientes = tasks.filter(t => !t.done);
   const resumen = pendientes.map(t =>
-    
-  ).join('
-') || 'No hay tareas pendientes.';
+    '- "' + t.titulo + '" | ' + t.ambito + ' | prioridad: ' + t.prioridad + ' | pide: ' + (t.quien || 'sin especificar') + ' | fecha: ' + (t.fecha || 'sin fecha')
+  ).join('\n') || 'No hay tareas pendientes.';
 
   text.innerHTML = '<span class="spinner"></span><span style="color:var(--muted);font-size:13px">analizando...</span>';
   input.value = '';
